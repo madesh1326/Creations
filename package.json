@@ -1,0 +1,8 @@
+{
+  "name": "hall-pods",
+  "version": "1.0.0",
+  "description": "Hall Pods: shared sleep pacts, meal rhythm, event scheduler and study timer",
+  "main": "server.js",
+  "scripts": { "start": "node server.js" },
+  "engines": { "node": ">=18" }
+}
