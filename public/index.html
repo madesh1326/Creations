@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>Hall Sync</title>
+<title>Hall Sync Beta</title>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="color-scheme" content="light">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -104,6 +104,28 @@ nav button[aria-selected=true]{background:#fff;color:var(--iris2);box-shadow:0 6
 .lens{display:flex;gap:12px;justify-content:center;align-items:center;margin-top:16px;flex-wrap:wrap}.lens input{width:76px;text-align:center}
 #toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:#fff;padding:10px 18px;border-radius:99px;z-index:30;max-width:90%;box-shadow:0 12px 30px -10px rgba(24,32,61,.6)}
 @media(max-width:520px){h1{font-size:28px}.two{grid-template-columns:1fr}.phead{gap:12px}.pact .act{flex-direction:column;align-items:stretch}.week{justify-content:center}.pact .act button{width:100%}}
+.cal-top{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.cal-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px}
+.cal-dow{text-align:center;font-size:13px;color:var(--muted);font-weight:500;padding:12px 0 4px}
+.cal-day{height:clamp(54px,10vw,76px);padding:6px 2px 4px;border-radius:14px;display:flex;flex-direction:column;align-items:center;gap:5px;background:rgba(255,255,255,.45);border:1px solid transparent;box-shadow:none;font-weight:500}
+.cal-day:hover{background:rgba(255,255,255,.85)}
+.cal-day.out{color:var(--muted);opacity:.55}
+.cal-day.sel{background:#fff;border-color:var(--iris);box-shadow:0 6px 16px -8px rgba(52,60,130,.5)}
+.cal-day .n{width:26px;height:26px;display:grid;place-items:center;border-radius:50%;font-size:15px}
+.cal-day.today .n{background:var(--iris);color:#fff;font-weight:700}
+.pips{display:flex;gap:3px;align-items:center;justify-content:center;flex-wrap:wrap;min-height:10px}
+.pip{width:7px;height:7px;border-radius:2px;background:var(--iris);display:block}
+.pip.late{background:#e7a43a}
+.more{font-size:11px;color:var(--muted);line-height:1}
+.dot.s{width:10px;height:10px;display:block}
+.cal-legend{display:flex;gap:6px 14px;flex-wrap:wrap;margin-top:12px;font-size:13px;color:var(--muted)}
+.cal-legend span{display:inline-flex;gap:6px;align-items:center}
+.csec{margin-top:18px}
+.cgroup>.citem:first-child{border-top:0}
+.citem{display:flex;justify-content:space-between;gap:12px;align-items:center;padding:12px 0;border-top:1px solid var(--line)}
+.cmain{min-width:0;flex:1}
+.cemo{font-size:22px}
+@media(max-width:520px){nav button{padding:9px 6px;font-size:15px}.citem{flex-direction:column;align-items:stretch}.cal-day{gap:3px}}
 #help{border:1px solid var(--edge);border-radius:24px;padding:0;width:min(640px,calc(100% - 28px));max-height:85vh;background:rgba(255,255,255,.8);-webkit-backdrop-filter:blur(24px) saturate(170%);backdrop-filter:blur(24px) saturate(170%);color:var(--ink);box-shadow:0 1px 0 rgba(255,255,255,.9) inset,0 24px 60px -20px rgba(52,60,130,.5);overflow:hidden}
 #help[open]{display:flex;flex-direction:column}
 #help::backdrop{background:rgba(24,32,61,.28);-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px)}
@@ -174,6 +196,56 @@ nav button[aria-selected=true]{background:#fff;color:var(--iris2);box-shadow:0 6
       <div id="events"></div>
     </section>
 
+    <!-- CALENDAR -->
+    <section class="panel" id="p-calendar" role="tabpanel" hidden>
+      <div class="glass pad">
+        <div class="cal-top">
+          <h2 id="c-title" aria-live="polite"></h2>
+          <div class="row">
+            <button class="sm" id="c-prev" type="button" aria-label="Previous month">&lsaquo;</button>
+            <button class="sm" id="c-today" type="button">Today</button>
+            <button class="sm" id="c-next" type="button" aria-label="Next month">&rsaquo;</button>
+          </div>
+        </div>
+        <div class="row" style="margin-top:12px">
+          <span class="sub" id="c-show-l">Show on calendar</span>
+          <div class="chips" role="group" aria-labelledby="c-show-l">
+            <button class="sm" id="c-lp" type="button" aria-pressed="true">Plans</button>
+            <button class="sm" id="c-lk" type="button" aria-pressed="true">My pacts</button>
+          </div>
+          <button class="sm quiet" id="c-jump" type="button">Jump to next plan</button>
+        </div>
+        <div class="chips" id="c-stats" style="margin-top:12px"></div>
+        <div class="cal-grid" aria-hidden="true"><div class="cal-dow">Mon</div><div class="cal-dow">Tue</div><div class="cal-dow">Wed</div><div class="cal-dow">Thu</div><div class="cal-dow">Fri</div><div class="cal-dow">Sat</div><div class="cal-dow">Sun</div></div>
+        <div class="cal-grid" id="c-grid" role="group" aria-label="Days of the month. Use the arrow keys to move between days."></div>
+        <div class="cal-legend" aria-hidden="true">
+          <span><i class="pip"></i>Plan</span>
+          <span><i class="pip late"></i>Plan ends past the hard stop</span>
+          <span><i class="dot s done"></i>Pacts done</span>
+          <span><i class="dot s late"></i>Late</span>
+          <span><i class="dot s missed"></i>Missed</span>
+          <span><i class="dot s open"></i>Open</span>
+          <span><i class="dot s wait"></i>Coming up</span>
+        </div>
+      </div>
+
+      <div class="glass pad">
+        <h2 id="c-dh"></h2><p class="sub" id="c-dsub"></p>
+        <h3 class="csec">Plans</h3>
+        <div id="c-plans" class="cgroup"></div>
+        <h3 class="csec" id="c-ph">Your pacts</h3>
+        <div id="c-pacts" class="cgroup"></div>
+        <h3 class="csec" id="ce-h">Add a plan</h3>
+        <div class="chips" style="margin-top:10px" id="ce-presets"></div>
+        <div class="row" style="margin-top:12px">
+          <input id="ce-title" placeholder="What are we doing?" style="flex:2 1 200px;width:auto" aria-label="Plan title" maxlength="60">
+          <input type="time" id="ce-start" aria-label="Start"><input type="time" id="ce-end" aria-label="End (optional)">
+        </div>
+        <div class="row" style="margin-top:10px"><input id="ce-note" placeholder="Where, what to bring (optional)" style="flex:1 1 220px;width:auto" aria-label="Note" maxlength="100"><button class="pri" id="ce-add" type="button">Add plan</button></div>
+        <div id="ce-msg" class="msg" role="status"></div>
+      </div>
+    </section>
+
     <!-- FOCUS -->
     <section class="panel" id="p-focus" role="tabpanel" hidden>
       <div class="glass timer"><h2 id="f-modeh">Focus round</h2><div class="big" id="f-clock">25:00</div>
@@ -182,7 +254,7 @@ nav button[aria-selected=true]{background:#fff;color:var(--iris2);box-shadow:0 6
       <div class="glass pad"><h2>Pod study board</h2><p class="sub">Today's completed focus rounds.</p><div id="board" style="margin-top:8px"></div></div>
     </section>
   </div>
-  <header class="glass pad"><div><h3>T089 | Team 3</h3><p class="sub">Vb1.6, Made by Yiwei, Eunice, Valynn, Sean, Madesh</p></div></header>
+  <header class="glass pad"><div><h3>T089 | Team 3</h3><p class="sub">Vb1.7, Made by Yiwei, Eunice, Valynn, Sean, Madesh</p></div></header>
 </main>
 <dialog id="help" aria-labelledby="help-h">
   <div class="help-head"><h2 id="help-h">How Hall Sync works</h2><button class="quiet" id="help-x" type="button">Close</button></div>
@@ -235,6 +307,19 @@ nav button[aria-selected=true]{background:#fff;color:var(--iris2);box-shadow:0 6
     <details><summary>Plans</summary>
       <p>Use Plans to put a hangout on the calendar. Tap a quick idea to fill in the title and times, or type your own. A title, date and start time are needed. The end time and note (where, what to bring) are optional.</p>
       <p>Everyone in the pod sees the plan and can tap Join or Leave to say whether they're coming. You're added automatically to plans you create, and only the creator can delete a plan. Only upcoming plans are shown, so past ones drop off the list.</p>
+    </details>
+
+    <details><summary>Calendar</summary>
+      <p>The Calendar tab shows your pod's month at a glance. Tap a day to see its plans and your pacts for that day, and to add a plan on it.</p>
+      <ul>
+        <li><b>Small squares</b> are plans. An amber square means the plan ends after the hard stop, which is when your Lights down pact opens (10:30 PM if you have no such pact).</li>
+        <li><b>The round dot</b> is your pact status for the day: green all done, amber a late check-in, red a missed one, a ring still open, and a dashed ring is coming up.</li>
+        <li><b>Show on calendar</b> turns plans or your pacts on and off in the grid. The day details always show both.</li>
+        <li><b>Warnings</b> appear on a plan when it overlaps another plan or runs past the hard stop.</li>
+        <li><b>Month summary</b> counts the plans this month and how many of your pact check-ins were on time.</li>
+        <li><b>Jump to next plan</b> takes you to the soonest upcoming plan. Arrow keys move between days.</li>
+        <li>Today's pacts can be checked in right from the day details. Past days are read-only.</li>
+      </ul>
     </details>
 
     <details><summary>Focus timer</summary>
@@ -416,7 +501,7 @@ function sub(code){S.unsub.forEach(f=>f());S.unsub=[
  S.db.collection(`pods/${code}/pacts`).onSnapshot(q=>{S.pacts=q.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(a.created||0)-(b.created||0));paint()}),
  S.db.collection(`pods/${code}/pledges`).onSnapshot(q=>{const m={};q.docs.forEach(d=>{const x=d.data();if(!x||!x.p||!x.u)return;(m[x.p]=m[x.p]||{})[x.u]=x});S.pledges=m;paint()}),
  S.db.collection(`pods/${code}/events`).onSnapshot(q=>{S.events=q.docs.map(d=>({id:d.id,...d.data()}));paint()})]}
-function leave(){S.unsub.forEach(f=>f());S.unsub=[];S.code=null;S.members={};S.pacts=[];S.pledges={};S.events=[];S.pod={name:''};ls.set('hp-code','');closeForm();paint()}
+function leave(){C.sel=today();C.y=new Date().getFullYear();C.m=new Date().getMonth();S.unsub.forEach(f=>f());S.unsub=[];S.code=null;S.members={};S.pacts=[];S.pledges={};S.events=[];S.pod={name:''};ls.set('hp-code','');closeForm();paint()}
 
 /* ---------- pacts view ---------- */
 function weekDots(p,pl,now){const start=ymd(new Date(Math.max(p.created||0,pl.joined||0)));const out=[];
@@ -475,6 +560,86 @@ function paintEvents(){const box=$('#events');box.replaceChildren();const mem=me
 function rsvp(ev){const g=new Set(ev.going||[]);g.has(S.uid)?g.delete(S.uid):g.add(S.uid);S.db.doc(`pods/${S.code}/events/${ev.id}`).update({going:[...g]}).catch(()=>toast('Could not update.'))}
 function delEv(ev){S.db.doc(`pods/${S.code}/events/${ev.id}`).delete().catch(()=>toast('Could not delete.'))}
 
+/* ---------- calendar ---------- */
+const C={y:new Date().getFullYear(),m:new Date().getMonth(),sel:today(),plans:true,pacts:true};
+const toMin=s=>{const[a,b]=s.split(':').map(Number);return a*60+b};
+const hardStop=()=>{const p=S.pacts.find(x=>/lights/i.test(x.title||'')&&x.opens);return p?p.opens:'22:30'};
+const evSpan=e=>{const a=toMin(e.start);return[a,e.end?toMin(e.end):a+60]};
+function evFlags(list,ev){const stop=toMin(hardStop()),[a,b]=evSpan(ev),f=[];
+ if(ev.end?toMin(ev.end)>stop:a>=stop)f.push(['Runs past '+t12(hardStop()),'bad']);
+ const clash=list.find(o=>o!==ev&&(([c,d])=>a<d&&c<b)(evSpan(o)));
+ if(clash)f.push(['Overlaps '+clash.title,'']);
+ return f}
+function eventsByDay(){const m={};S.events.filter(e=>e.date&&e.start).forEach(e=>(m[e.date]=m[e.date]||[]).push(e));
+ Object.values(m).forEach(a=>a.sort((x,y)=>x.start.localeCompare(y.start)));return m}
+function myPactStates(k,now){const out=[],t=today();
+ S.pacts.forEach(p=>{const pl=(S.pledges[p.id]||{})[S.uid];if(!pl)return;
+  const st=ymd(new Date(Math.max(p.created||0,pl.joined||0)));
+  if(k<st||!scheduled(p,k))return;
+  out.push({p,s:k>t?'future':dayState(p,pl.days||{},k,now)})});
+ return out}
+function pactSummary(k,now){const a=myPactStates(k,now);if(!a.length)return'';const s=a.map(x=>x.s);
+ return s.includes('missed')?'missed':s.includes('late')?'late':s.some(x=>x==='open'||x==='wait')?'open':s.includes('future')?'wait':'done'}
+const PACT_WORD={missed:'one missed',late:'one late',open:'still open',wait:'coming up',done:'all done'};
+function paintCal(){
+ if(!S.code)return;
+ const grid=$('#c-grid'),ae=document.activeElement,fk=ae&&ae.dataset?ae.dataset.k:null;
+ const now=Date.now(),t=today(),by=eventsByDay(),dim=new Date(C.y,C.m+1,0).getDate(),lead=(new Date(C.y,C.m,1).getDay()+6)%7;
+ $('#c-title').textContent=new Date(C.y,C.m,1).toLocaleDateString(undefined,{month:'long',year:'numeric'});
+ $('#c-lp').setAttribute('aria-pressed',String(C.plans));$('#c-lk').setAttribute('aria-pressed',String(C.pacts));
+ $('#c-jump').disabled=!S.events.some(e=>e.date>=t&&e.start);
+ const cells=[];
+ for(let i=0;i<Math.ceil((lead+dim)/7)*7;i++){
+  const d=new Date(C.y,C.m,1-lead+i),k=ymd(d),inM=d.getMonth()===C.m,evs=by[k]||[],shown=C.plans?evs:[],ps=C.pacts?pactSummary(k,now):'';
+  const late=e=>evFlags(evs,e).some(f=>f[1]==='bad');
+  const lab=d.toLocaleDateString(undefined,{weekday:'long',day:'numeric',month:'long'})+', '+(evs.length?evs.length+(evs.length===1?' plan':' plans'):'no plans')+(ps?', your pacts: '+PACT_WORD[ps]:'')+(k===C.sel?', selected':'');
+  cells.push(h('button',{type:'button','data-k':k,class:'cal-day'+(inM?'':' out')+(k===t?' today':'')+(k===C.sel?' sel':''),'aria-label':lab,...(k===t?{'aria-current':'date'}:{}),
+    onclick:()=>{C.sel=k;C.y=d.getFullYear();C.m=d.getMonth();paintCal()}},
+   h('span',{class:'n'},d.getDate()),
+   h('span',{class:'pips'},shown.slice(0,3).map(e=>h('i',{class:'pip'+(late(e)?' late':'')})),shown.length>3?h('small',{class:'more'},'+'+(shown.length-3)):null,ps?h('i',{class:'dot s '+ps}):null)))}
+ grid.replaceChildren(...cells);
+ if(fk){const b=grid.querySelector('[data-k="'+fk+'"]');if(b)b.focus({preventScroll:true})}
+
+ let on=0,tot=0,pl=0,lateN=0;
+ for(let n=1;n<=dim;n++){const k=ymd(new Date(C.y,C.m,n)),evs=by[k]||[];
+  pl+=evs.length;lateN+=evs.filter(e=>evFlags(evs,e).some(f=>f[1]==='bad')).length;
+  if(k<=t)myPactStates(k,now).forEach(x=>{if(x.s==='done'){on++;tot++}else if(x.s==='late'||x.s==='missed')tot++})}
+ $('#c-stats').replaceChildren(
+  h('span',{class:'chip'},h('b',{},String(pl)),h('small',{},pl===1?'plan this month':'plans this month')),
+  tot?h('span',{class:'chip'},h('b',{},on+' of '+tot),h('small',{},'pact check-ins on time')):null,
+  lateN?h('span',{class:'chip bad'},h('b',{},String(lateN)),h('small',{},lateN===1?'plan runs late':'plans run late')):null);
+
+ const sel=C.sel,evs=by[sel]||[],pst=myPactStates(sel,now),dd=new Date(sel+'T00:00');
+ $('#c-dh').textContent=dd.toLocaleDateString(undefined,{weekday:'long',day:'numeric',month:'long'})+(sel===t?' (today)':'');
+ $('#c-dsub').textContent=(evs.length?evs.length+(evs.length===1?' plan':' plans'):'No plans')+(pst.length?', '+pst.length+(pst.length===1?' pact':' pacts')+' for you':'');
+ $('#ce-h').textContent='Add a plan on '+dd.toLocaleDateString(undefined,{weekday:'short',day:'numeric',month:'short'});
+ const mem=members();
+ $('#c-plans').replaceChildren(...(evs.length?evs.map(ev=>{const going=ev.going||[],me=going.includes(S.uid);
+  return h('div',{class:'citem'},
+   h('div',{class:'cmain'},h('b',{},ev.title),h('div',{class:'sub'},t12(ev.start)+(ev.end?' to '+t12(ev.end):'')+(ev.note?', '+ev.note:'')),
+    h('div',{class:'meta'},evFlags(evs,ev).map(f=>h('span',{class:'tag '+f[1]},f[0])),h('span',{class:'tag'},going.length?going.map(i=>(mem[i]||{}).name||'Someone').join(', '):'Nobody yet'))),
+   h('div',{class:'row nowrap'},h('button',{class:'sm'+(me?'':' pri'),onclick:()=>rsvp(ev)},me?'Leave':'Join'),ev.by===S.uid?h('button',{class:'sm quiet',onclick:()=>delEv(ev)},'Delete'):null))}):[h('p',{class:'hint'},'Nothing planned for this day. Add one below.')]));
+ $('#c-ph').hidden=!pst.length;
+ $('#c-pacts').replaceChildren(...pst.map(({p,s})=>{const pl=(S.pledges[p.id]||{})[S.uid],lab=s==='future'?['Coming up','']:STATE_LABEL[s];
+  const right=sel===t?actionFor(p,pl,s):h('span',{class:'tag '+lab[1]},lab[0]+((s==='done'||s==='late')&&pl.days&&pl.days[sel]?' at '+tsT(pl.days[sel]):''));
+  return h('div',{class:'citem'},h('div',{class:'cmain row nowrap'},h('span',{class:'cemo','aria-hidden':'true'},p.emoji||'🎯'),h('div',{},h('b',{},p.title),h('div',{class:'sub'},windowText(p)))),right)}))}
+function goMonth(y,m){const d=new Date(y,m,1),n=new Date();C.y=d.getFullYear();C.m=d.getMonth();C.sel=(C.y===n.getFullYear()&&C.m===n.getMonth())?today():ymd(d);paintCal()}
+$('#c-prev').onclick=()=>goMonth(C.y,C.m-1);$('#c-next').onclick=()=>goMonth(C.y,C.m+1);
+$('#c-today').onclick=()=>{const n=new Date();goMonth(n.getFullYear(),n.getMonth())};
+$('#c-lp').onclick=()=>{C.plans=!C.plans;paintCal()};$('#c-lk').onclick=()=>{C.pacts=!C.pacts;paintCal()};
+$('#c-jump').onclick=()=>{const t=today(),nx=S.events.filter(e=>e.date>=t&&e.start).sort((a,b)=>(a.date+a.start).localeCompare(b.date+b.start))[0];
+ if(!nx)return;const d=new Date(nx.date+'T00:00');C.y=d.getFullYear();C.m=d.getMonth();C.sel=nx.date;paintCal()};
+$('#c-grid').addEventListener('keydown',e=>{const step={ArrowLeft:-1,ArrowRight:1,ArrowUp:-7,ArrowDown:7}[e.key];if(!step)return;e.preventDefault();
+ const d=new Date(C.sel+'T00:00');d.setDate(d.getDate()+step);C.sel=ymd(d);C.y=d.getFullYear();C.m=d.getMonth();paintCal();
+ const b=$('#c-grid [data-k="'+C.sel+'"]');if(b)b.focus()});
+$('#ce-presets').append(...PRE.map(p=>h('button',{type:'button',class:'sm',onclick:()=>{$('#ce-title').value=p[1];$('#ce-start').value=p[2];$('#ce-end').value=p[3]}},p[0])));
+$('#ce-add').onclick=async()=>{const title=$('#ce-title').value.trim(),start=$('#ce-start').value,end=$('#ce-end').value,note=$('#ce-note').value.trim(),msg=$('#ce-msg');
+ if(!title||!start){msg.textContent='Add a title and a start time.';return}
+ if(end&&end<=start){msg.textContent='The end time must be after the start.';return}
+ msg.textContent='';
+ try{await S.db.doc(`pods/${S.code}/events/e${Date.now().toString(36)}`).set({title,date:C.sel,start,end,note,by:S.uid,going:[S.uid],created:Date.now()})}catch(e){return toast('Could not add the plan.')}
+ $('#ce-title').value='';$('#ce-note').value='';toast('Plan added')};
+
 /* ---------- focus ---------- */
 const cfg={f:Math.min(180,Math.max(1,+ls.get('hp-focus')||25)),b:Math.min(60,Math.max(1,+ls.get('hp-break')||5))};
 const P={mode:'focus',left:cfg.f*MIN,end:0,run:false,len:cfg.f};
@@ -513,12 +678,12 @@ async function applyDevCode(){
  }catch(e){msg.textContent='Could not reach the server.'}}
 if($('#dev-go')){$('#dev-go').onclick=applyDevCode;$('#dev-code').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();applyDevCode()}})}
 /* ---------- shell ---------- */
-const TABS=[['pacts','Pacts'],['plans','Plans'],['focus','Focus']];
+const TABS=[['pacts','Pacts'],['plans','Plans'],['calendar','Calendar'],['focus','Focus']];
 function tab(k){TABS.forEach(([x])=>{$('#p-'+x).hidden=x!==k;$('#t-'+x).setAttribute('aria-selected',x===k)})}
 $('#tabs').append(...TABS.map(([k,l])=>h('button',{id:'t-'+k,role:'tab',onclick:()=>tab(k)},l)));tab('pacts');
-function paint(){paintJoin();$('#app').hidden=!S.code;if(S.code){paintPacts();paintEvents();paintBoard()}paintTimer()}
+function paint(){paintJoin();$('#app').hidden=!S.code;if(S.code){paintPacts();paintEvents();paintCal();paintBoard()}paintTimer()}
 let lastMin=-1;
-setInterval(()=>{const m=Math.floor(Date.now()/MIN);if(m!==lastMin){lastMin=m;if(S.code)paintPacts()}paintTimer();if(S.code)paintBoard()},1000);
+setInterval(()=>{const m=Math.floor(Date.now()/MIN);if(m!==lastMin){lastMin=m;if(S.code){paintPacts();paintCal()}}paintTimer();if(S.code)paintBoard()},1000);
 paint();
 
 /* ---------- local backend client (talks to server.js) ---------- */
