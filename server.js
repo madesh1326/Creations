@@ -18,6 +18,7 @@ const HOST = process.env.HOST || '0.0.0.0'; // use 127.0.0.1 to keep it on this 
 const DATA_FILE = path.join(__dirname, 'data.json');
 const DEMO_FILE = path.join(__dirname, 'data.demo.json');
 const INDEX = path.join(__dirname, 'public', 'index.html');
+const FAVICON = path.join(__dirname, 'public', 'favicon.png');
 const MAX_BODY = 100 * 1024;
 const VALID_PATH = /^[A-Za-z0-9_-]+(\/[A-Za-z0-9_-]+){0,5}$/;
 const DEV_CODE = (process.env.DEV_CODE || 'demo').trim().toLowerCase();
@@ -108,7 +109,10 @@ function buildDemo(uid, name) {
   const people = [[me, name || 'You'], ...others];
   people.forEach(([id, n], i) => {
     const pomos = 1 + Math.floor(rnd() * 5);
-    docs[`pods/${DEMO_POD}/members/${id}`] = { name: n, day: dayKey(0), pomos, mins: pomos * 25, focusUntil: 0, joinedAt: created + i * 3600000 };
+    const log = {}; // minutes studied per day, so Goals has history to show
+    for (let d = 1; d <= 20; d++) if (rnd() < 0.7) log[dayKey(-d)] = 25 * (1 + Math.floor(rnd() * 5));
+    log[dayKey(0)] = pomos * 25;
+    docs[`pods/${DEMO_POD}/members/${id}`] = { name: n, day: dayKey(0), pomos, mins: pomos * 25, focusUntil: 0, log, joinedAt: created + i * 3600000 };
   });
   docs[`pods/${DEMO_POD}/members/demo2`].focusUntil = now + 11 * 60000; // shows a "Focusing" tag
 
@@ -165,6 +169,13 @@ function buildDemo(uid, name) {
     if (!going.includes(by)) going.push(by);
     docs[`pods/${DEMO_POD}/events/edemo${i}`] = { title: e[0], date: dayKey(i === 0 ? 0 : 1 + Math.floor(rnd() * 9)), start: e[1], end: e[2], note: e[3], by, going, created: now - i * 3600000 };
   });
+  // personal goals for you (study hours come from the focus log above)
+  const gLog = (days, f) => { const o = {}; for (let d = 1; d <= days; d++) { const v = f(); if (v) o[dayKey(-d)] = v; } return o; };
+  const goal = (id, g) => { docs[`pods/${DEMO_POD}/goals/${id}`] = { u: me, created: now - 14 * DAY, log: {}, ...g }; };
+  goal('gdemo1', { title: 'Study time', emoji: '📚', type: 'focus', unit: 'hr', target: 2, period: 'day' });
+  goal('gdemo2', { title: 'Weekly study', emoji: '🎓', type: 'focus', unit: 'hr', target: 8, period: 'week' });
+  goal('gdemo3', { title: 'Sleep', emoji: '😴', type: 'atleast', unit: 'hr', target: 7, period: 'day', log: gLog(13, () => Math.round((5.5 + rnd() * 3) * 4) / 4) });
+  goal('gdemo4', { title: 'Supper out', emoji: '🍜', type: 'atmost', unit: 'times', target: 2, period: 'week', log: gLog(13, () => (rnd() < 0.2 ? 1 : 0)) });
   return docs;
 }
 
@@ -189,6 +200,14 @@ const server = http.createServer(async (req, res) => {
     return fs.readFile(INDEX, (err, buf) => {
       if (err) { res.writeHead(500); return res.end('public/index.html is missing'); }
       res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
+      res.end(buf);
+    });
+  }
+
+  if (url.pathname === '/favicon.png' || url.pathname === '/favicon.ico') {
+    return fs.readFile(FAVICON, (err, buf) => {
+      if (err) { res.writeHead(404); return res.end('Not found'); }
+      res.writeHead(200, { 'Content-Type': 'image/png', 'Cache-Control': 'public, max-age=86400' });
       res.end(buf);
     });
   }

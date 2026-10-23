@@ -3,6 +3,7 @@
 <head>
 <meta charset="utf-8">
 <title>Hall Sync Beta</title>
+<link rel="icon" href="/favicon.png" type="image/png">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="color-scheme" content="light">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -140,6 +141,14 @@ nav button[aria-selected=true]{background:#fff;color:var(--iris2);box-shadow:0 6
 .help-body p{margin-top:10px}
 .help-body ul{margin:10px 0 0;padding-left:20px}.help-body li+li{margin-top:6px}
 @supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){#help{background:var(--glass2)}}
+.bar{height:10px;border-radius:99px;background:rgba(24,32,61,.09);overflow:hidden;margin-top:12px}
+.bar i{display:block;height:100%;border-radius:99px;background:var(--iris);transition:width .4s}
+.bar.ok i{background:var(--mint)}.bar.warn i{background:#e7a43a}.bar.bad i{background:var(--coral)}
+.gtop{display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap;margin-top:14px}
+.gnum{font:800 26px/1.1 var(--hd);letter-spacing:-.01em;font-variant-numeric:tabular-nums}.gnum small{font:500 15px var(--bd);color:var(--muted);letter-spacing:0}
+.grow{display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-top:14px}
+.glog{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.glog input{width:96px;text-align:center}
+.tag.warn{color:var(--amber);border-color:rgba(150,89,10,.35);background:rgba(231,164,58,.14)}
 </style>
 </head>
 <body>
@@ -253,8 +262,36 @@ nav button[aria-selected=true]{background:#fff;color:var(--iris2);box-shadow:0 6
         <div class="lens"><label for="len-f" style="margin:0">Focus minutes</label><input type="number" id="len-f" min="1" max="180" inputmode="numeric"><label for="len-b" style="margin:0">Break minutes</label><input type="number" id="len-b" min="1" max="60" inputmode="numeric"></div></div>
       <div class="glass pad"><h2>Pod study board</h2><p class="sub">Today's completed focus rounds.</p><div id="board" style="margin-top:8px"></div></div>
     </section>
+
+    <!-- GOALS -->
+    <section class="panel" id="p-goals" role="tabpanel" hidden>
+      <div class="glass pad today">
+        <div class="ring"><svg viewBox="0 0 44 44" aria-hidden="true"><circle class="rt" cx="22" cy="22" r="18"/><circle class="rv" id="gg" cx="22" cy="22" r="18" transform="rotate(-90 22 22)"/></svg><b id="gtxt">0</b></div>
+        <div style="flex:1;min-width:0"><h2>My goals</h2><p class="sub" id="g-sub"></p></div>
+        <button class="pri" id="g-new">New goal</button>
+      </div>
+
+      <section class="glass pad" id="gform" hidden aria-labelledby="gf-h">
+        <div class="row sp"><h2 id="gf-h">New goal</h2><button class="quiet" id="gf-x" type="button">Close</button></div>
+        <div id="gf-tpl-wrap" style="margin-top:10px"><p class="sub" style="margin-bottom:8px">Start from an idea, or write your own below.</p><div class="chips" id="gf-tpl"></div></div>
+        <div class="field" style="margin-top:16px"><label for="g-title">What is the goal?</label>
+          <div class="row nowrap"><input id="g-emoji" class="emo" aria-label="Emoji" maxlength="8"><input id="g-title" maxlength="40" placeholder="Sleep"></div></div>
+        <div class="field"><label for="g-type">What kind of goal?</label>
+          <select id="g-type"><option value="focus">Study time, counted by the focus timer</option><option value="atmost">A limit: stay at or under</option><option value="atleast">A minimum: reach at least</option></select>
+          <p class="hint" id="g-hint"></p></div>
+        <div class="two">
+          <div class="field"><label for="g-target" id="g-tl">Target</label><input type="number" id="g-target" min="0" step="any" inputmode="decimal"></div>
+          <div class="field" id="g-unitw" style="margin-top:0"><label for="g-unit">Counted in</label><select id="g-unit"><option value="times">times</option><option value="hr">hours</option><option value="min">minutes</option></select></div>
+        </div>
+        <div class="field"><label for="g-period">How often?</label><select id="g-period"><option value="day">Every day</option><option value="week">Each week (Monday to Sunday)</option></select></div>
+        <div class="row" style="margin-top:18px"><button class="pri" id="g-save" type="button">Create goal</button><button id="g-cancel" type="button">Cancel</button></div>
+        <div id="g-msg" class="msg" role="status"></div>
+      </section>
+
+      <div id="goals"></div>
+    </section>
   </div>
-  <header class="glass pad"><div><h3>T089 | Team 3</h3><p class="sub">Vb1.7, Made by Yiwei, Eunice, Valynn, Sean, Madesh</p></div></header>
+  <header class="glass pad"><div><h3>T089 | Team 3</h3><p class="sub">Vb1.8, Made by Yiwei, Eunice, Valynn, Sean, Madesh</p></div></header>
 </main>
 <dialog id="help" aria-labelledby="help-h">
   <div class="help-head"><h2 id="help-h">How Hall Sync works</h2><button class="quiet" id="help-x" type="button">Close</button></div>
@@ -332,6 +369,16 @@ nav button[aria-selected=true]{background:#fff;color:var(--iris2);box-shadow:0 6
       <p>A round only counts when a full focus round runs to zero. Pausing, resetting or switching early doesn't count. The Pod study board shows everyone's rounds and minutes for today, and a Focusing tag appears next to anyone with a round running right now. The board starts fresh each day.</p>
     </details>
 
+    <details><summary>Goals</summary>
+      <p>The Goals tab is for your own targets. They are personal, so your pod mates don't see them in the app. Tap New goal, pick a quick idea or write your own, and choose how often it repeats: every day, or each week from Monday to Sunday.</p>
+      <ul>
+        <li><b>Study time:</b> set hours per day or per week. It fills up by itself whenever a full round finishes on the Focus tab.</li>
+        <li><b>A limit:</b> stay at or under something, like supper out 2 times a week. You log each time yourself with the +1 button, and the bar turns amber at your limit and red once you go over.</li>
+        <li><b>A minimum:</b> reach at least something, like 7 hours of sleep. Type today's amount and tap Save.</li>
+      </ul>
+      <p>Each card shows your progress, the last 7 days (or 4 weeks), and a streak of periods in a row where you hit the goal or stayed within the limit. Edit changes a goal, and changing its type or unit clears what you logged.</p>
+    </details>
+
     <details><summary>Good to know</summary>
       <ul>
         <li>Changes sync across everyone's devices within a moment, as long as they can reach the server if its running !.</li>
@@ -370,12 +417,13 @@ function toast(t){const e=$('#toast');e.textContent=t;e.hidden=false;clearTimeou
 const firstGlyph=v=>{v=(v||'').trim();if(!v)return'';try{const r=new Intl.Segmenter(undefined,{granularity:'grapheme'}).segment(v)[Symbol.iterator]().next();return r.value?r.value.segment:''}catch(e){return Array.from(v)[0]||''}};
 
 /* ---------- state ---------- */
-const S={db:null,uid:ls.get('hp-uid')||('u'+Math.random().toString(36).slice(2,10)),code:null,pod:{name:''},members:{},pacts:[],pledges:{},events:[],unsub:[],
- me:{name:ls.get('hp-name')||'',day:'',pomos:0,mins:0,focusUntil:0,joinedAt:Date.now()}};
+const S={db:null,uid:ls.get('hp-uid')||('u'+Math.random().toString(36).slice(2,10)),code:null,pod:{name:''},members:{},pacts:[],pledges:{},events:[],goals:[],unsub:[],
+ me:{name:ls.get('hp-name')||'',day:'',pomos:0,mins:0,focusUntil:0,log:{},joinedAt:Date.now()}};
 const today=()=>ymd(new Date());
 const members=()=>({...S.members,[S.uid]:S.me});
 const nameOf=u=>(members()[u]||{}).name||'Someone';
 function save(){const me=S.me;if(me.day!==today()){me.day=today();me.pomos=0;me.mins=0}
+ if(me.log)Object.keys(me.log).sort().slice(0,-120).forEach(x=>delete me.log[x]);
  if(S.code&&S.db)S.db.doc(`pods/${S.code}/members/${S.uid}`).set(me).catch(()=>toast('Could not sync. Check your connection.'));paint()}
 
 /* ---------- pact logic ---------- */
@@ -493,15 +541,16 @@ async function enter(code,create,name,podName){
   else{if(code.length!==6)return toast('Codes have 6 characters.');if(!(await S.db.doc('pods/'+code).get()).exists)return toast('No pod with that code. Check it and retry.')}
   S.me.name=name;ls.set('hp-name',name);ls.set('hp-code',code);S.code=code;
   const ms=await S.db.doc(`pods/${code}/members/${S.uid}`).get();
-  if(ms.exists){const d=ms.data();S.me={name,day:d.day||'',pomos:d.pomos||0,mins:d.mins||0,focusUntil:d.focusUntil||0,joinedAt:d.joinedAt||Date.now()}}else S.me.joinedAt=Date.now();
+  if(ms.exists){const d=ms.data();S.me={name,day:d.day||'',pomos:d.pomos||0,mins:d.mins||0,focusUntil:d.focusUntil||0,log:d.log||{},joinedAt:d.joinedAt||Date.now()}}else S.me.joinedAt=Date.now();
   sub(code);save();toast('You are in pod '+code)}catch(e){toast('Something went wrong: '+(e.message||e.code))}}
 function sub(code){S.unsub.forEach(f=>f());S.unsub=[
  S.db.doc('pods/'+code).onSnapshot(s=>{if(s.exists){S.pod={...S.pod,...s.data()};paint()}}),
  S.db.collection(`pods/${code}/members`).onSnapshot(q=>{S.members={};q.docs.forEach(d=>{if(d.id!==S.uid)S.members[d.id]=d.data()});paint()}),
  S.db.collection(`pods/${code}/pacts`).onSnapshot(q=>{S.pacts=q.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(a.created||0)-(b.created||0));paint()}),
  S.db.collection(`pods/${code}/pledges`).onSnapshot(q=>{const m={};q.docs.forEach(d=>{const x=d.data();if(!x||!x.p||!x.u)return;(m[x.p]=m[x.p]||{})[x.u]=x});S.pledges=m;paint()}),
- S.db.collection(`pods/${code}/events`).onSnapshot(q=>{S.events=q.docs.map(d=>({id:d.id,...d.data()}));paint()})]}
-function leave(){C.sel=today();C.y=new Date().getFullYear();C.m=new Date().getMonth();S.unsub.forEach(f=>f());S.unsub=[];S.code=null;S.members={};S.pacts=[];S.pledges={};S.events=[];S.pod={name:''};ls.set('hp-code','');closeForm();paint()}
+ S.db.collection(`pods/${code}/events`).onSnapshot(q=>{S.events=q.docs.map(d=>({id:d.id,...d.data()}));paint()}),
+ S.db.collection(`pods/${code}/goals`).onSnapshot(q=>{S.goals=q.docs.map(d=>({id:d.id,...d.data()}));paint()})]}
+function leave(){C.sel=today();C.y=new Date().getFullYear();C.m=new Date().getMonth();S.unsub.forEach(f=>f());S.unsub=[];S.code=null;S.members={};S.pacts=[];S.pledges={};S.events=[];S.goals=[];S.pod={name:''};ls.set('hp-code','');closeForm();closeGoalForm();paint()}
 
 /* ---------- pacts view ---------- */
 function weekDots(p,pl,now){const start=ymd(new Date(Math.max(p.created||0,pl.joined||0)));const out=[];
@@ -654,7 +703,7 @@ function paintTimer(){const left=P.run?P.end-Date.now():P.left;
  $('#len-f').disabled=$('#len-b').disabled=P.run;
  document.title=P.run?cd(left)+' Hall Sync':'Hall Sync';$('#f-clock').className=P.run?'':'dim';$('#f-modeh').className=P.run?'':'dim'}
 function done(){const was=P.mode;P.run=false;P.mode=was==='focus'?'break':'focus';P.left=dur(P.mode);
- if(was==='focus'){S.me.pomos=(S.me.pomos||0)+1;S.me.mins=(S.me.mins||0)+P.len;S.me.focusUntil=0;save();toast('Round complete. Time for a break.')}else toast('Break over. Ready for the next round?');paintTimer()}
+ if(was==='focus'){const k=today();S.me.log={...(S.me.log||{}),[k]:focusMins(k)+P.len};S.me.pomos=(S.me.pomos||0)+1;S.me.mins=(S.me.mins||0)+P.len;S.me.focusUntil=0;save();toast('Round complete. Time for a break.')}else toast('Break over. Ready for the next round?');paintTimer()}
 $('#f-go').onclick=()=>{if(P.run){P.left=P.end-Date.now();P.run=false;S.me.focusUntil=0}else{P.len=cfg.f;P.end=Date.now()+P.left;P.run=true;if(P.mode==='focus')S.me.focusUntil=P.end}save();paintTimer()};
 $('#f-reset').onclick=()=>{P.run=false;P.left=dur(P.mode);S.me.focusUntil=0;save();paintTimer()};
 $('#f-sw').onclick=()=>{P.run=false;P.mode=P.mode==='focus'?'break':'focus';P.left=dur(P.mode);S.me.focusUntil=0;save();paintTimer()};
@@ -677,13 +726,112 @@ async function applyDevCode(){
   setTimeout(()=>location.reload(),600)
  }catch(e){msg.textContent='Could not reach the server.'}}
 if($('#dev-go')){$('#dev-go').onclick=applyDevCode;$('#dev-code').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();applyDevCode()}})}
+/* ---------- goals ---------- */
+const addDays=(k,n)=>{const d=new Date(k+'T00:00');d.setDate(d.getDate()+n);return ymd(d)};
+const weekStart=k=>{const d=new Date(k+'T00:00');return ymd(new Date(d.getFullYear(),d.getMonth(),d.getDate()-(d.getDay()+6)%7))};
+const num=v=>Math.round((+v||0)*10000)/10000;
+const fmtG=(v,u)=>{v=num(v);if(u==='times')return v+(v===1?' time':' times');if(u==='min')return Math.round(v)+' min';
+ const m=Math.round(v*60);return m<60?m+' min':Math.floor(m/60)+' h'+(m%60?' '+m%60+' min':'')};
+/* minutes studied on day k, from finished focus rounds (today also reads the running total, for rounds saved before the log existed) */
+const focusMins=k=>Math.max(+(S.me.log||{})[k]||0,S.me.day===k?+S.me.mins||0:0);
+const valOn=(g,k)=>g.type==='focus'?focusMins(k)/60:+(g.log||{})[k]||0;
+const periodVal=(g,s)=>{if(g.period!=='week')return num(valOn(g,s));let t=0;for(let i=0;i<7;i++)t+=valOn(g,addDays(s,i));return num(t)};
+const periodStart=(g,i)=>g.period==='week'?addDays(weekStart(today()),-7*i):addDays(today(),-i);
+const gMet=(g,v)=>g.type==='atmost'?v<=num(g.target):v>=num(g.target);
+/* newest first: done | missed | open | off */
+function gHistory(g){const n=g.period==='week'?12:60,made=ymd(new Date(g.created||0)),out=[];
+ for(let i=0;i<n;i++){const s=periodStart(g,i),end=g.period==='week'?addDays(s,6):s;
+  if(end<made){out.push({s,v:0,st:'off'});continue}
+  const v=periodVal(g,s);
+  out.push({s,v,st:gMet(g,v)?(g.type!=='atmost'||i>0?'done':'open'):(i===0&&g.type!=='atmost'?'open':'missed')})}
+ return out}
+function gStreak(hist){let n=0;for(let i=0;i<hist.length;i++){const s=hist[i].st;if(s==='done')n++;else if(i===0&&s==='open')continue;else break}return n}
+const gRef=g=>S.db.doc(`pods/${S.code}/goals/${g.id}`);
+async function logGoal(g,v){const k=today(),log={...(g.log||{})};if(v>0)log[k]=v;else delete log[k];
+ Object.keys(log).sort().slice(0,-120).forEach(x=>delete log[x]);g.log=log;paintGoals(true);
+ try{await gRef(g).update({log})}catch(e){toast('Could not save that. Check your connection.')}}
+async function delGoal(g){if(!confirm('Delete "'+g.title+'"?'))return;try{await gRef(g).delete()}catch(e){toast('Could not delete the goal.')}}
+const DOTW={done:'met',missed:'missed',open:'in progress',off:'before this goal'};
+function gDots(g,hist){const wk=g.period==='week',mx=g.type==='atmost';
+ return h('div',{class:'week',role:'img','aria-label':wk?'Last 4 weeks':'Last 7 days'},hist.slice(0,wk?4:7).reverse().map(({s,st})=>{
+  const d=new Date(s+'T00:00'),lab=wk?'Week of '+d.toLocaleDateString(undefined,{day:'numeric',month:'short'}):d.toLocaleDateString(undefined,{weekday:'short'});
+  return h('span',{class:'dot '+st,title:lab+': '+(mx&&st==='done'?'within limit':mx&&st==='missed'?'over limit':DOTW[st])})}))}
+function goalLog(g){
+ if(g.type==='focus')return h('div',{class:'glog'},h('span',{class:'sub'},'Counts finished focus rounds.'),h('button',{class:'sm',onclick:()=>tab('focus')},'Open timer'));
+ const tv=+(g.log||{})[today()]||0;
+ if(g.unit==='times')return h('div',{class:'glog'},h('span',{class:'sub'},'Today'),
+  h('button',{class:'sm','aria-label':'Remove one',...(tv<=0?{disabled:''}:{}),onclick:()=>logGoal(g,tv-1)},'\u2212'),
+  h('b',{style:'min-width:2ch;text-align:center'},String(tv)),
+  h('button',{class:'sm pri','aria-label':'Add one',onclick:()=>logGoal(g,tv+1)},'+1'));
+ const hr=g.unit==='hr',inp=h('input',{type:'number',min:'0',step:hr?'0.25':'1',inputmode:'decimal','aria-label':'Amount today',placeholder:hr?'hours':'minutes',value:tv?String(Math.round(tv*100)/100):''});
+ const go=()=>{const x=parseFloat(inp.value);if(inp.value!==''&&!(x>=0)){toast('Enter a number.');return}logGoal(g,Math.round((x||0)*100)/100)};
+ inp.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();go()}});
+ return h('div',{class:'glog'},h('span',{class:'sub'},'Today'),inp,h('span',{class:'sub'},hr?'h':'min'),h('button',{class:'sm pri',onclick:go},'Save'))}
+function goalCard(g,hist){
+ const v=hist[0].v||0,tg=num(g.target),u=g.unit,mx=g.type==='atmost',wk=g.period==='week',n=gStreak(hist),pct=tg?Math.min(100,v/tg*100):0;
+ let tag,bar='';
+ if(mx){if(v>tg){tag=['Over by '+fmtG(v-tg,u),'bad'];bar='bad'}else if(v===tg){tag=['At your limit','warn'];bar='warn'}else{tag=[fmtG(tg-v,u)+' left','ok'];bar=pct>=75?'warn':'ok'}}
+ else if(v>=tg){tag=['Goal met','ok'];bar='ok'}else tag=[fmtG(tg-v,u)+' to go','iris'];
+ return h('article',{class:'glass pact'},
+  h('div',{class:'phead'},h('div',{class:'tile '+tint(g.id)},g.emoji||'🎯'),
+   h('div',{class:'pmain'},h('h3',{},g.title),h('p',{class:'sub'},(mx?'At most ':'At least ')+fmtG(tg,u)+(wk?' a week':' a day')),
+    h('div',{class:'meta'},h('span',{class:'tag'},g.type==='focus'?'Focus timer':mx?'Limit':'Minimum'),h('span',{class:'tag'},wk?'Monday to Sunday':'Every day'),n?h('span',{class:'tag iris'},n+(wk?'-week':'-day')+' streak'):null))),
+  h('div',{class:'gtop'},h('div',{class:'gnum'},fmtG(v,u),h('small',{},' of '+fmtG(tg,u)+(wk?' this week':' today'))),h('span',{class:'tag '+tag[1]},tag[0])),
+  h('div',{class:'bar '+bar,role:'progressbar','aria-label':g.title,'aria-valuemin':'0','aria-valuemax':String(tg),'aria-valuenow':String(v)},h('i',{style:'width:'+pct.toFixed(1)+'%'})),
+  h('div',{class:'grow'},goalLog(g),gDots(g,hist)),
+  h('div',{class:'foot'},h('button',{class:'quiet',onclick:()=>openGoalForm(g)},'Edit'),h('button',{class:'quiet',onclick:()=>delGoal(g)},'Delete')))}
+function paintGoals(force){
+ const box=$('#goals'),ae=document.activeElement;
+ if(!force&&ae&&ae.tagName==='INPUT'&&box.contains(ae))return; // don't wipe a number someone is typing
+ box.replaceChildren();
+ const items=S.goals.filter(g=>g.u===S.uid).sort((a,b)=>(a.created||0)-(b.created||0)).map(g=>({g,h:gHistory(g)}));
+ const ok=items.filter(x=>gMet(x.g,x.h[0].v)).length,n=items.length;
+ $('#gg').style.strokeDashoffset=(113.1*(1-(n?ok/n:0))).toFixed(1);$('#gtxt').textContent=n?ok+'/'+n:'0';
+ $('#g-sub').textContent=!n?'No goals yet.':ok===n?'Every goal is on track.':ok+' of '+n+' on track right now.';
+ if(!n){box.append(h('div',{class:'glass pad empty'},h('h3',{},'Set your first goal'),h('p',{class:'sub'},'Study hours from the focus timer, supper out at most twice a week, seven hours of sleep. You choose the number.'),h('button',{class:'pri',onclick:()=>openGoalForm(null)},'Create a goal')));return}
+ items.forEach(({g,h:hist})=>box.append(goalCard(g,hist)))}
+
+/* goal form */
+const GTPL=[
+ {n:'Study 2 h a day',emoji:'📚',title:'Study time',type:'focus',target:2,unit:'hr',period:'day'},
+ {n:'Study 10 h a week',emoji:'🎓',title:'Weekly study',type:'focus',target:10,unit:'hr',period:'week'},
+ {n:'Sleep 7 h',emoji:'😴',title:'Sleep',type:'atleast',target:7,unit:'hr',period:'day'},
+ {n:'Supper out twice a week',emoji:'🍜',title:'Supper out',type:'atmost',target:2,unit:'times',period:'week'},
+ {n:'Gaming under 2 h',emoji:'🎮',title:'Gaming',type:'atmost',target:2,unit:'hr',period:'day'},
+ {n:'Exercise 150 min a week',emoji:'🏃',title:'Exercise',type:'atleast',target:150,unit:'min',period:'week'}];
+const GH={focus:'Counts finished focus rounds on its own. Nothing to log.',atmost:'You log it yourself. Good for eating out, gaming or caffeine.',atleast:'You log it yourself. Good for sleep, exercise or reading.'};
+const G={id:null};
+function gType(){const t=$('#g-type').value;$('#g-hint').textContent=GH[t];$('#g-unitw').hidden=t==='focus';
+ $('#g-tl').textContent=t==='focus'?'Study hours':t==='atmost'?'Limit (at most)':'Target (at least)';if(t==='focus')$('#g-unit').value='hr'}
+function fillGoal(v){$('#g-emoji').value=v.emoji||'🎯';$('#g-title').value=v.title||'';$('#g-type').value=v.type||'focus';$('#g-target').value=v.target||'';
+ $('#g-unit').value=v.unit||'hr';$('#g-period').value=v.period||'day';$('#g-msg').textContent='';gType()}
+function openGoalForm(g){G.id=g?g.id:null;$('#gf-h').textContent=g?'Edit goal':'New goal';$('#g-save').textContent=g?'Save changes':'Create goal';
+ $('#gf-tpl-wrap').hidden=!!g;fillGoal(g||{});$('#gform').hidden=false;$('#g-new').hidden=true;$('#gform').scrollIntoView({behavior:'smooth',block:'start'});$('#g-title').focus({preventScroll:true})}
+function closeGoalForm(){$('#gform').hidden=true;$('#g-new').hidden=false;G.id=null}
+$('#gf-tpl').append(...GTPL.map(t=>h('button',{type:'button',class:'sm',onclick:()=>fillGoal(t)},t.emoji+' '+t.n)));
+$('#g-type').onchange=gType;$('#g-new').onclick=()=>openGoalForm(null);$('#gf-x').onclick=closeGoalForm;$('#g-cancel').onclick=closeGoalForm;
+$('#g-save').onclick=async()=>{const msg=$('#g-msg');msg.textContent='';
+ const title=$('#g-title').value.trim(),type=$('#g-type').value,unit=type==='focus'?'hr':$('#g-unit').value,period=$('#g-period').value;let target=parseFloat($('#g-target').value);
+ if(!title){msg.textContent='Give the goal a name.';return}
+ if(!(target>0)){msg.textContent='Enter a target above zero.';return}
+ const cap=period==='day'?{hr:24,min:1440,times:100}[unit]:{hr:168,min:10080,times:1000}[unit];
+ if(target>cap){msg.textContent='That is more than fits in a '+period+'.';return}
+ target=unit==='times'?Math.max(1,Math.round(target)):Math.round(target*100)/100;
+ const d={title,emoji:firstGlyph($('#g-emoji').value)||'🎯',type,unit,target,period},g=G.id&&S.goals.find(x=>x.id===G.id);
+ try{
+  if(g){if((g.type!==type||g.unit!==unit)&&Object.keys(g.log||{}).length){if(!confirm('Changing the type or unit clears the amounts you logged for this goal. Continue?'))return;d.log={}}
+   await gRef(g).update(d)}
+  else await S.db.doc(`pods/${S.code}/goals/g${Date.now().toString(36)}${Math.random().toString(36).slice(2,5)}`).set({...d,u:S.uid,log:{},created:Date.now()});
+  closeGoalForm();toast(g?'Goal updated':'Goal added')}
+ catch(e){msg.textContent='Could not save the goal. Check your connection and try again.'}};
+
 /* ---------- shell ---------- */
-const TABS=[['pacts','Pacts'],['plans','Plans'],['calendar','Calendar'],['focus','Focus']];
+const TABS=[['pacts','Pacts'],['plans','Plans'],['calendar','Calendar'],['focus','Focus'],['goals','Goals']];
 function tab(k){TABS.forEach(([x])=>{$('#p-'+x).hidden=x!==k;$('#t-'+x).setAttribute('aria-selected',x===k)})}
 $('#tabs').append(...TABS.map(([k,l])=>h('button',{id:'t-'+k,role:'tab',onclick:()=>tab(k)},l)));tab('pacts');
-function paint(){paintJoin();$('#app').hidden=!S.code;if(S.code){paintPacts();paintEvents();paintCal();paintBoard()}paintTimer()}
+function paint(){paintJoin();$('#app').hidden=!S.code;if(S.code){paintPacts();paintEvents();paintCal();paintBoard();paintGoals()}paintTimer()}
 let lastMin=-1;
-setInterval(()=>{const m=Math.floor(Date.now()/MIN);if(m!==lastMin){lastMin=m;if(S.code){paintPacts();paintCal()}}paintTimer();if(S.code)paintBoard()},1000);
+setInterval(()=>{const m=Math.floor(Date.now()/MIN);if(m!==lastMin){lastMin=m;if(S.code){paintPacts();paintCal();paintGoals()}}paintTimer();if(S.code)paintBoard()},1000);
 paint();
 
 /* ---------- local backend client (talks to server.js) ---------- */
